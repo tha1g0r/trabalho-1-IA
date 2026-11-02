@@ -1,6 +1,6 @@
 # Plano matemático: rede neural para MNIST
 
-Ponto de partida: **MLP** (782 → camada oculta → 10).
+Ponto de partida: **MLP** (784 → camada oculta → 10).
 
 ## 1. Representação dos dados
 - Cada imagem 28×28 vira um vetor $x \in \mathbb{R^{784 \times 1}}$, com pixels normalizados para [0,1] (divisão por 255).
@@ -56,3 +56,27 @@ Onde
 
 ## 4. Avaliação
 Acurácia, matriz de confusão e precisão/recall/F1 por classe.
+
+## 5. Protocolo experimental
+
+Os dados são separados em conjuntos de treino, validação e teste. O conjunto
+de treino é usado para atualizar os parâmetros da rede. O conjunto de
+validação é usado para escolher hiperparâmetros e acompanhar a generalização
+durante o treinamento. O conjunto de teste permanece isolado até a avaliação
+final.
+
+Neste projeto, o treinamento usa um número máximo fixo de épocas. A validação
+é executada no notebook após cada configuração ser treinada, para comparar
+hiperparâmetros sem utilizar o conjunto de teste.
+
+Para o MNIST, os pixels são divididos por 255 para ficarem no intervalo
+$[0,1]$. Para o Breast Cancer, as variáveis são padronizadas usando média e
+desvio-padrão calculados exclusivamente no conjunto de treino; os mesmos
+parâmetros são aplicados à validação e ao teste. Assim, informações dos
+conjuntos de avaliação não vazam para o treinamento.
+
+A inicialização dos pesos usa a variância $2/n_{\text{in}}$, adequada à ReLU,
+para reduzir a chance de escalas inadequadas nas ativações e nos gradientes.
+Os hiperparâmetros, como tamanho da camada oculta e taxa de aprendizado, são
+escolhidos pelo desempenho de validação. O teste é usado somente depois dessa
+escolha.
