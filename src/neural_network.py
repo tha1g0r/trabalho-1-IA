@@ -7,13 +7,12 @@ class NeuralNetwork:
         self.random_state = random_state
 
     def _init_params(self):
-        if self.random_state is not None:
-            np.random.seed(self.random_state)
+        rng = np.random.default_rng(self.random_state)
 
-        self.W1 = np.random.rand(self.h, self.n_feat) - 0.5
+        self.W1 = rng.normal(0, np.sqrt(2 / self.n_feat), (self.h, self.n_feat))
         self.b1 = np.zeros((self.h, 1))
 
-        self.W2 = np.random.rand(self.n_classes, self.h) - 0.5
+        self.W2 = rng.normal(0, np.sqrt(2 / self.h), (self.n_classes, self.h))
         self.b2 = np.zeros((self.n_classes, 1))
 
     def _feedforward(self, W1, b1, W2, b2):
@@ -51,25 +50,12 @@ class NeuralNetwork:
         self.W2 -= self.ln * dW2
         self.b2 -= self.ln * db2
 
-    def fit(self, X_train, y_train, epochs=1000):
-        def gradient_descent(epochs):
-            for i in range(epochs):
-                Z1, A1, Z2, A2 = self._feedforward(self.W1, self.b1, self.W2, self.b2)
+    @staticmethod
+    def _cross_entropy(A2, Y, eps=1e-12):
+        m = Y.shape[1]
+        return -np.sum(Y * np.log(np.clip(A2, eps, 1.0))) / m
 
-                dW1, db1, dW2, db2 = self._backpropagation(Z1, A1, A2)
-
-                self._update_params(dW1, db1, dW2, db2)
-
-                if (i + 1) % 50 == 0:
-                    predictions = np.argmax(A2, axis=0)
-                    labels = np.argmax(self.y, axis=0)
-                    accuracy = np.mean(predictions == labels)
-
-                    print(
-                        f"Época {i + 1}/{epochs} - Acurácia: {accuracy:.2%}"
-                    )
-
-
+    def fit(self, X_train, y_train, epochs=1000, verbose=False):
         self.m, self.n_feat = X_train.shape
         self.n_classes = len(np.unique(y_train))
 
@@ -78,17 +64,33 @@ class NeuralNetwork:
 
         self._init_params()
 
-        gradient_descent(epochs)
+        self.history = {"loss": [], "accuracy": [], "cost": [], "acc": []}
+
+        for i in range(epochs):
+            Z1, A1, _, A2 = self._feedforward(self.W1, self.b1, self.W2, self.b2)
+
+            loss = self._cross_entropy(A2, self.y)
+            accuracy = np.mean(np.argmax(A2, axis=0) == np.argmax(self.y, axis=0))
+            self.history["loss"].append(loss)
+            self.history["accuracy"].append(accuracy)
+            self.history["cost"].append(loss)
+            self.history["acc"].append(accuracy)
+
+            dW1, db1, dW2, db2 = self._backpropagation(Z1, A1, A2)
+            self._update_params(dW1, db1, dW2, db2)
+
+            if verbose and ((i + 1) % 50 == 0 or i == 0):
+                print(f"Época {i + 1}/{epochs} - Acurácia: {accuracy:.2%}")
+
+        self.n_epochs_ = len(self.history["loss"])
         return self
 
-    def predict(self, X):
-        X = X.T
-
-        Z1 = self.W1.dot(X) + self.b1
+    def predict_proba(self, X):
+        Z1 = self.W1.dot(X.T) + self.b1
         A1 = np.maximum(0, Z1)
-
         Z2 = self.W2.dot(A1) + self.b2
         exp_z = np.exp(Z2 - np.max(Z2, axis=0, keepdims=True))
-        A2 = exp_z / np.sum(exp_z, axis=0, keepdims=True)
+        return exp_z / np.sum(exp_z, axis=0, keepdims=True)
 
-        return np.argmax(A2, axis=0)
+    def predict(self, X):
+        return np.argmax(self.predict_proba(X), axis=0)
