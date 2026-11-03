@@ -1,6 +1,5 @@
 # %%
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 from sklearn.metrics import (
     accuracy_score,
@@ -119,12 +118,10 @@ best_params = {
 }
 
 epoch_results = []
-epoch_models = {}
 for epochs in [100, 250, 500, 750, 1000]:
     model, result = train_configuration(best_params, epochs=epochs)
     result["epochs"] = epochs
     epoch_results.append(result)
-    epoch_models[epochs] = model
 
 epoch_results_df = pd.DataFrame(epoch_results).sort_values(
     ["val_f1_macro", "val_accuracy"],
@@ -133,7 +130,20 @@ epoch_results_df = pd.DataFrame(epoch_results).sort_values(
 print(epoch_results_df.to_string(index=False))
 
 best_epochs = int(epoch_results_df.iloc[0]["epochs"])
-best_model = epoch_models[best_epochs]
+
+X_train_final = pd.concat(
+    [pd.DataFrame(X_train), pd.DataFrame(X_val)]
+).to_numpy()
+y_train_final = pd.concat(
+    [pd.Series(y_train), pd.Series(y_val)]
+).to_numpy()
+
+best_model = NeuralNetwork(random_state=42, **best_params)
+best_model.fit(
+    X_train_final,
+    y_train_final,
+    epochs=best_epochs,
+)
 
 # %%
 epoch_results_df.plot(
@@ -222,9 +232,9 @@ seed_results = []
 for seed in [1, 2, 3, 4, 5]:
     model = NeuralNetwork(random_state=seed, **best_params)
     model.fit(
-        X_train,
-        y_train,
-        epochs=500,
+        X_train_final,
+        y_train_final,
+        epochs=best_epochs,
     )
     predictions = model.predict(X_test)
     seed_results.append(
