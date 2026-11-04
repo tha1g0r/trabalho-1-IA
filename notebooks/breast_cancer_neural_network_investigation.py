@@ -146,7 +146,7 @@ best_model.fit(
 )
 
 # %%
-epoch_results_df.plot(
+epoch_results_df.sort_values("epochs").plot(
     x="epochs",
     y="val_f1_macro",
     marker="o",
