@@ -14,13 +14,20 @@ from sklearn.model_selection import ParameterGrid, train_test_split
 
 from src.neural_network import NeuralNetwork
 
+FIGURE_SIZE = (6.4, 4.8)
+TWO_PANEL_FIGURE_SIZE = (12.8, 4.8)
+
 # %%
 df = pd.read_csv("data/mnist--digit-recognizer/train.csv")
 X = df.drop(columns="label").to_numpy(dtype=float) / 255.0
 y = df["label"].to_numpy(dtype=int)
 
 class_counts = pd.Series(y).value_counts().sort_index()
-class_counts.plot(kind="bar", title="Distribuição das classes - MNIST")
+class_counts.plot(
+    kind="bar",
+    title="Distribuição das classes - MNIST",
+    figsize=FIGURE_SIZE,
+)
 plt.xlabel("Classe")
 plt.ylabel("Quantidade")
 plt.tight_layout()
@@ -72,6 +79,7 @@ results_df.plot(
     title="F1 macro por configuração - MNIST",
     xlabel="Configuração",
     ylabel="F1 macro de validação",
+    figsize=FIGURE_SIZE,
 )
 plt.xticks(
     range(len(results_df)),
@@ -111,6 +119,7 @@ refinement_results_df.plot(
     title="Impacto do tamanho da camada oculta - MNIST",
     xlabel="Neurônios na camada oculta",
     ylabel="F1 macro de validação",
+    figsize=FIGURE_SIZE,
 )
 plt.tight_layout()
 plt.show()
@@ -146,6 +155,7 @@ epoch_results_df.plot(
     title="Impacto do número de épocas - MNIST",
     xlabel="Épocas",
     ylabel="F1 macro de validação",
+    figsize=FIGURE_SIZE,
 )
 plt.tight_layout()
 plt.show()
@@ -191,7 +201,7 @@ confusion = confusion_matrix(y_test, test_predictions)
 print("Matriz de confusão:\n", confusion)
 
 # %%
-fig, axes = plt.subplots(1, 2, figsize=(13, 5))
+fig, axes = plt.subplots(1, 2, figsize=TWO_PANEL_FIGURE_SIZE)
 axes[0].imshow(confusion, cmap="Blues")
 axes[0].set_title("Matriz de confusão - MNIST")
 axes[0].set_xlabel("Predição")
@@ -216,7 +226,7 @@ plt.show()
 
 # %%
 history = best_model.history
-fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+fig, axes = plt.subplots(1, 2, figsize=TWO_PANEL_FIGURE_SIZE)
 axes[0].plot(history["loss"], label="Treino")
 axes[0].set_title("Perda de treinamento")
 axes[0].set_xlabel("Época")

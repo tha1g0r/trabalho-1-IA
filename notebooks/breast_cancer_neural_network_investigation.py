@@ -190,7 +190,7 @@ confusion = confusion_matrix(y_test, test_predictions)
 print("Matriz de confusão:\n", confusion)
 
 # %%
-fig, axes = plt.subplots(1, 2, figsize=(11, 5))
+fig, axes = plt.subplots(1, 2, figsize=(13, 5))
 axes[0].imshow(confusion, cmap="Blues")
 axes[0].set_title("Matriz de confusão - Breast Cancer")
 axes[0].set_xlabel("Predição")
@@ -214,7 +214,7 @@ plt.show()
 
 # %%
 history = best_model.history
-fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+fig, axes = plt.subplots(1, 2, figsize=(13, 5))
 axes[0].plot(history["loss"], label="Treino")
 axes[0].set_title("Perda de treinamento")
 axes[0].set_xlabel("Época")
